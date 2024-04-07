@@ -1,0 +1,59 @@
+{% block content %}
+<div class="container">
+    <h2>Tasks for {{ group_profile.group.name }}</h2>
+    {% if request.user == group_profile.creator %}
+        <a href="{% url 'taskcreate' %}" class="btn btn-primary">Create Task</a>
+        <a href="{% url 'create_achievement' group_id=group_profile.id %}" class="btn btn-primary">Create Achievement</a>
+    {% endif %}
+    <a href="{% url 'achievement_list' %}" class="btn btn-primary">Achievements</a>
+    <hr>
+    {% if tasks %}
+        <form method="post" action="{% url 'bulk_assign_achievements' group_id=group_profile.id %}">
+            {% csrf_token %}
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Assigned To</th>
+                        <th>Status</th>
+                        <th>Deadline</th>
+                        <th>Achievement</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for task in tasks %}
+                        <tr>
+                            <td>{{ task.title }}</td>
+                            <td>{{ task.description }}</td>
+                            <td>{{ task.user.get_full_name|default:task.user.username }}</td>
+                            <td>{{ task.complete|yesno:"Completed,Not Completed" }}</td>
+                            <td>{{ task.deadline|date:"Y-m-d H:i" }}</td>
+                            <td>
+                                {% if request.user == group_profile.creator %}
+                                <select name="achievement_{{ task.id }}" class="form-control">
+                                <option value="">---------</option>
+                                    {% for achievement in achievements %}  <!-- Updated this line -->
+                                <option value="{{ achievement.id }}" {% if task.achievement == achievement %}selected{% endif %}>{{ achievement.title }}</option>
+                                    {% endfor %}
+                                </select>
+                                {% else %}
+                                    {{ task.achievement }}
+                                {% endif %}
+
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <button type="submit" class="btn btn-success">Update Achievements</button>
+        </form>
+    {% else %}
+        <p>No tasks in this group yet.</p>
+    {% endif %}
+    {% for achievement in group_profile.current_group.achievement_set.all %}
+    <!-- This will print out the title of each achievement to ensure the loop is working -->
+    {{ achievement.title }}
+    {% endfor %}
+</div>
+{% endblock %}

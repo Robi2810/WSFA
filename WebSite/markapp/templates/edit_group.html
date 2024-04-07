@@ -1,0 +1,7 @@
+<form method="post" action="{% url 'editgroup' group.id %}">
+    {% csrf_token %}
+    {{ group_form.as_p }}
+    <h3>Add User to Group by Email</h3>
+    {{ user_form.as_p }}
+    <button type="submit">Save Changes</button>
+</form>

@@ -1,0 +1,94 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Вход</title>
+    <link rel="stylesheet" href="{% static 'css/common.css' %}" />
+    <style>
+      .login-container {
+        position: absolute;
+        top: 40%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        margin-bottom: 24px;
+        display: flex;
+        flex-direction: column;
+        width: 400px;
+      }
+
+      .header {
+        font-size: 16px;
+        font-weight: 500;
+        line-height: 20px;
+        margin-bottom: 24px;
+      }
+
+      .forgot-link {
+        color: black;
+        font-family: Golos;
+        font-size: 16px;
+        font-weight: 400;
+        line-height: 20px;
+        margin-bottom: 30px;
+      }
+
+      a.forgot-link:visited {
+        color: black;
+      }
+
+      .login-button {
+        margin: 24px 0;
+      }
+
+      .reg-block {
+        display: flex;
+        align-self: center;
+      }
+
+      .reg-link {
+        text-decoration: none;
+        color: #4480f3;
+        margin-left: 8px;
+      }
+
+      a.reg-link:visited {
+        color: #4480f3;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="login-container">
+      <h2 class="header">Вход в аккаунт</h2>
+      <form action="{% url 'login' %}" method="post" class="form">
+        {% csrf_token %}
+        <div class="text-field">
+          <label for="username">Логин</label>
+          <input type="text" placeholder="Введите логин" name="username" required />
+        </div>
+        <div class="text-field {%if error %}text-field_error{% endif %}">
+          <label for="password">Пароль</label>
+          <input id="password-input" type="password" placeholder="Введите пароль" name="password" required />
+          <img class="eye" src="{% static 'icons/eye.svg' %}" alt="" onclick="show_hide_password()" />
+          {{ error }}
+        </div>
+        <button type="submit" class="button login-button">Войти</button>
+      </form>
+      <div class="reg-block">
+        <div class="no-account">Ещё нет аккаунта?</div>
+        <a href="{% url 'registration' %}" class="reg-link"> Зарегистрироваться </a>
+      </div>
+    </div>
+  </body>
+  <script>
+    function show_hide_password() {
+      var input = document.getElementById("password-input");
+      if (input.getAttribute("type") == "password") {
+        input.setAttribute("type", "text");
+      } else {
+        input.setAttribute("type", "password");
+      }
+      return false;
+    }
+  </script>
+</html>

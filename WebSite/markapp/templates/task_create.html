@@ -1,0 +1,34 @@
+
+{% block content %}
+<div class="container">
+    <h2>Create New Task</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Create Task</button>
+    </form>
+</div>
+<script type="text/javascript">
+document.addEventListener("DOMContentLoaded", function() {
+    const groupSelect = document.querySelector("#id_current_group");
+    const userSelect = document.querySelector("#id_user");
+
+    groupSelect.addEventListener("change", function() {
+        const groupId = this.value;
+        userSelect.innerHTML = '';  // Clear existing options first
+
+        if(groupId) {
+            fetch(`/api/get-group-users/${groupId}/`)  // Adjust URL as necessary
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(user => {
+                        const option = new Option(user.username, user.id);
+                        userSelect.add(option);
+                    });
+                })
+                .catch(error => console.error('Error fetching users:', error));
+        }
+    });
+});
+</script>
+{% endblock %}

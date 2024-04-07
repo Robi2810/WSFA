@@ -1,0 +1,226 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Регистрация</title>
+    <link rel="stylesheet" href="{% static 'css/common.css' %}" />
+    <style>
+      .layout {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .reg-container {
+        margin-top: 100px;
+        margin-bottom: 24px;
+        display: flex;
+        flex-direction: column;
+        width: 400px;
+      }
+
+      .text-field {
+        margin-bottom: 16px;
+      }
+
+      .input-container {
+        display: flex;
+        position: relative;
+      }
+
+      .input-container input {
+        width: 100%;
+      }
+
+      .title {
+        margin-bottom: 24px;
+      }
+
+      .hint {
+        width: max-content;
+        position: absolute;
+        left: calc(100% + 18px);
+        top: 50%;
+        transform: translateY(-50%);
+        max-width: 314px;
+        border-radius: 8px;
+        background: var(--bg-default-amelie, #fff);
+        padding: 4px 8px;
+        box-shadow: 0px 4px 16px 0px rgba(12, 16, 24, 0.12);
+        display: none;
+      }
+
+      .hint__arrow {
+        position: absolute;
+        left: -6px;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      .text-field input:focus + .hint {
+        display: block;
+      }
+
+      .reg-button {
+        margin: 24px 0;
+      }
+
+      .login-block {
+        display: flex;
+        align-self: center;
+      }
+
+      .login-link {
+        text-decoration: none;
+        color: #4480f3;
+        margin-left: 8px;
+      }
+
+      a.login-link:visited {
+        color: #4480f3;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="layout">
+      <div class="reg-container">
+        <h1 class="font-b1 title">Регистрация</h1>
+        <form method="POST" class="form">
+          {% csrf_token %}
+          <div class="text-field">
+            <label for="id_username"
+              >Придумайте логин, он будет использоваться при входе</label
+            >
+            <div class="input-container">
+              <input
+                type="text"
+                name="username"
+                maxlength="150"
+                autofocus
+                required
+                id="id_username"
+              />
+              <div class="hint font-b3">
+                Не более 150 символов. Можно использовать буквы, цифры и
+                cпециальные символы как @._+-
+                <img
+                  class="hint__arrow"
+                  src="{% static 'icons/arrow.svg' %}"
+                  alt=""
+                />
+              </div>
+            </div>
+          </div>
+          <div class="text-field">
+            <label for="id_first_name">Имя</label>
+            <input
+              type="text"
+              name="first_name"
+              maxlength="40"
+              required
+              id="id_first_name"
+            />
+          </div>
+          <div class="text-field">
+            <label for="id_last_name">Фамилия</label>
+            <input
+              type="text"
+              name="last_name"
+              maxlength="40"
+              required
+              id="id_last_name"
+            />
+          </div>
+          <div class="text-field">
+            <label for="id_email">Email</label>
+            <input
+              type="email"
+              name="email"
+              maxlength="320"
+              required
+              id="id_email"
+            />
+          </div>
+          <div class="text-field">
+            <label for="id_password1">Придумайте пароль</label>
+            <input
+              type="password"
+              name="password1"
+              autocomplete="new-password"
+              required
+              id="id_password1"
+            />
+            <div class="hint font-b3">
+              Не короче 8 символов. Используйте буквы и цифры. Не используйте
+              личные данные и распространенные пароли
+              <img
+                class="hint__arrow"
+                src="{% static 'icons/arrow.svg' %}"
+                alt=""
+              />
+            </div>
+            <img
+              class="eye"
+              src="{% static 'icons/eye.svg' %}"
+              alt=""
+              onclick="show_hide_password1()"
+            />
+          </div>
+          <div class="text-field">
+            <label for="id_password2">Подтвердите пароль</label>
+            <input
+              type="password"
+              name="password2"
+              autocomplete="new-password"
+              required
+              id="id_password2"
+            />
+            <div class="hint font-b3">
+              Не короче 8 символов. Используйте буквы и цифры. Не используйте
+              личные данные и распространенные пароли
+              <img
+                class="hint__arrow"
+                src="{% static 'icons/arrow.svg' %}"
+                alt=""
+              />
+            </div>
+            <img
+              class="eye"
+              src="{% static 'icons/eye.svg' %}"
+              alt=""
+              onclick="show_hide_password2()"
+            />
+          </div>
+          <button type="submit" class="button reg-button">
+            Зарегистрироваться
+          </button>
+          <div class="login-block">
+            <div class="no-account">Уже есть аккаунт?</div>
+            <a href="{% url 'login' %}" class="login-link"> Войти </a>
+          </div>
+        </form>
+      </div>
+    </div>
+    <script>
+      function show_hide_password1() {
+        var input = document.getElementById("id_password1");
+        if (input.getAttribute("type") == "password") {
+          input.setAttribute("type", "text");
+        } else {
+          input.setAttribute("type", "password");
+        }
+        return false;
+      }
+      function show_hide_password2() {
+        var input = document.getElementById("id_password2");
+        if (input.getAttribute("type") == "password") {
+          input.setAttribute("type", "text");
+        } else {
+          input.setAttribute("type", "password");
+        }
+        return false;
+      }
+    </script>
+  </body>
+</html>

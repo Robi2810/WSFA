@@ -1,0 +1,809 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Профиль</title>
+    <link rel="stylesheet" href="{% static 'css/common.css' %}" />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body,
+      .container {
+        width: 100%;
+        background-color: #ebedf0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .back {
+        width: fit-content;
+        display: flex;
+        align-items: center;
+        color: var(--primary, #1d222a);
+      }
+
+      .back:visited {
+        color: var(--primary, #1d222a);
+      }
+
+      .back img {
+        margin-right: 8px;
+      }
+
+      .title {
+        display: flex;
+        align-items: center;
+        padding: 20px 24px;
+        border-radius: 16px;
+        background: var(--primary, #1d222a);
+        overflow: hidden;
+        background-image: url("{% static 'icons/background.svg' %}");
+        color: white;
+        height: 114px;
+      }
+
+      .participants {
+        border-radius: 16px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        background: #fff;
+        padding: 24px;
+        overflow: hidden;
+        min-width: 0;
+      }
+
+      .participants__title {
+        padding-right: 24px;
+        margin-bottom: 16px;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .participants__participants {
+        color: var(--primary, #1d222a);
+      }
+
+      .participants__amount {
+        color: var(--secondary, #525760);
+        margin-left: 4px;
+      }
+
+      .participants__all {
+        color: var(--primary, #1d222a);
+        cursor: pointer;
+      }
+
+      .participants-container {
+        margin-top: 24px;
+        display: flex;
+        gap: 5px;
+        padding: 0 8px;
+        overflow-x: auto;
+      }
+
+      .user {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .user__icon-container {
+        padding: 4px 8px;
+      }
+
+      .user__icon {
+        width: 56px;
+        height: 56px;
+      }
+
+      .user__name {
+        padding: 2px;
+        color: var(--primary, #1d222a);
+        text-align: center;
+        font-family: "Golos";
+        font-size: 12px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 14px;
+      }
+
+      .tasks {
+        border-radius: 16px;
+        border: 1px solid rgba(0, 0, 0, 0.08);
+        background: var(--secondary-light, #fff);
+        padding: 8px;
+      }
+
+      .tasks__title {
+        padding: 16px;
+      }
+
+      .tasks__header {
+        display: grid;
+        grid-template-columns: 2fr 2fr 1fr 1fr 30px;
+        gap: 16px;
+        padding: 8px 16px;
+      }
+
+      .header-cell {
+        color: var(--gray-sub-text, #757373);
+        text-align: center;
+        font-family: Golos;
+        font-size: 13px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 16px;
+        display: flex;
+      }
+
+      .tasks__row {
+        display: grid;
+        grid-template-columns: 2fr 2fr 1fr 1fr 30px;
+        gap: 16px;
+        padding: 16px;
+      }
+
+      .table-cell {
+        color: var(--primary, #1d222a);
+        font-family: Golos;
+        font-size: 16px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 20px;
+      }
+
+      .text-field {
+        margin-bottom: 16px;
+      }
+
+      .achievements-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        padding: 0 16px 16px 16px;
+      }
+
+      .achievement {
+        display: flex;
+        gap: 16px;
+        width: 100%;
+      }
+
+      .achievement__main {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+
+      .achievements__title {
+        padding: 16px 16px 0 16px;
+      }
+
+      .task-description {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 16px;
+      }
+
+      .task-description__title {
+        overflow: hidden;
+        color: var(--tretiary, #80858e);
+        font-family: Golos;
+        font-size: 13px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 16px;
+      }
+
+      .task-description__value {
+        color: var(--primary, #1d222a);
+        font-family: Golos;
+        font-size: 16px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 20px;
+      }
+
+      .achievement-input {
+        cursor: pointer;
+      }
+
+      .achievement-dropdown {
+        width: 100%;
+        top: calc(100% + 5px);
+        z-index: 7;
+      }
+
+      .achievement-title {
+        color: #1d222a;
+      }
+
+      .achievement-weight {
+        color: #525760;
+      }
+
+      .task__delete {
+        cursor: pointer;
+      }
+
+      .not-found {
+        display: flex;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="header__navigation">
+          <div class="header-profile" id="header-profile">
+            <img
+              class="header-profile__photo"
+              src="{% if profile.profile_pic %}{{profile.profile_pic.url}}{% else %}{% static 'icons/user.svg' %}{% endif %}"
+              alt=""
+            />
+            <img src="{% static 'icons/dropdown-arrow.svg' %}" width="16" height="16px" alt="" />
+            <div class="profile-dropdown" id="profile_dropdown">
+              <div class="profile-dropdown__item" onclick="showHideEditProfileModal(event)">Редактировать профиль</div>
+              <a class="profile-dropdown__item" href="{% url 'logout' %}">Выйти из аккаунта</a>
+            </div>
+          </div>
+        </div>
+      </header>
+      <main>
+        <a href="{% url 'userprofile' %}" class="back">
+          <img src="{% static 'icons/back.svg' %}" alt="Назад" />
+          Вернуться к главной странице
+        </a>
+        <div class="title font-b1">{{profile_group.group.name}}</div>
+        <div class="participants">
+          <div class="participants__title">
+            <div class="participants__participants font-b1">
+              <span>Участники</span><span class="participants__amount font-b3">{{ participants|length }}</span>
+            </div>
+          </div>
+          {% if is_creator %}
+          <button class="button-black create-group" onclick="showHideAddUserToGroupModal(event)">
+            <img src="{% static 'icons/plus.svg' %}" alt="" />
+            Добавить участника
+          </button>
+          {% endif %}
+          <div class="participants-container">
+            <div class="user">
+              <div class="user__icon-container">
+                <img
+                  src="{% if creator.profile_pic %}{{creator.profile_pic.url}}{% else %}{% static 'icons/user.svg' %}{% endif %}"
+                  alt=""
+                  class="user__icon"
+                />
+              </div>
+              <div class="user__name">{{creator.user.first_name}}</div>
+            </div>
+            {% for participant_profile in participants %}
+            <div class="user">
+              <div class="user__icon-container">
+                <img
+                  src="{% if participant_profile.profile_pic %}{{participant_profile.profile_pic.url}}{% else %}{% static 'icons/user.svg' %}{% endif %}"
+                  alt=""
+                  class="user__icon"
+                />
+              </div>
+              <div class="user__name">{{participant_profile.user.first_name}}</div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="tasks">
+          <div class="tasks__title">
+            <div class="tab-item" id="tab_tasks">Задачи</div>
+            {% if is_creator %}
+            <button class="button-black create-group" onclick="showHideAddTaskModal(event)">
+              <img src="{% static 'icons/plus.svg' %}" alt="" />
+              Новая задача
+            </button>
+            {% endif %}
+          </div>
+          {% if not tasks %}
+          <div class="not-found">Задач пока нет</div>
+          {% endif %} {% if tasks|length > 0 %}
+          <div class="tasks__header">
+            <div class="header-cell">Задачи</div>
+            <div class="header-cell">Исполнитель</div>
+            <div class="header-cell">Дедлайн</div>
+            <div class="header-cell">Награда</div>
+            <div></div>
+          </div>
+          {% endif %} {% for task in tasks %}
+          <div class="tasks__row">
+            <div class="table-cell">{{task.title}}</div>
+            <div class="table-cell">{{task.user.first_name}} {{task.user.last_name}}</div>
+            <div class="table-cell">{{task.deadline|date:'d.m.Y'}}</div>
+            {% if user.id == task.current_group.creator.id and task.achievement == None%}
+            <div class="table-cell">
+              <button
+                class="button-black"
+                id="{{task.title}}|{{task.description}}|{{task.id}}"
+                onclick="showHideEstimateModal(event)"
+              >
+                Оценить
+              </button>
+            </div>
+            {% endif %} {% if task.achievement %}
+            <div class="table-cell">
+              <div class="achievement-title font-b2">{{task.achievement.title}}</div>
+              <div class="achievement-weight font-b3">{{task.achievement.weight}} баллов</div>
+            </div>
+            {% endif %} {% if user.id != task.current_group.creator.id and task.achievement == None %}
+            <div class="table-cell achievement-weight">Ещё не оценено</div>
+            {% endif %} {% if is_creator %}
+            <img
+              id="task{{task.id}}"
+              onclick="showHideDeleteTaskModal(event)"
+              class="task__delete"
+              src="{% static 'icons/delete.svg' %}"
+              alt=""
+            />
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="tasks">
+          <div class="achievements__title">
+            <div class="tab-item" id="tab_achievements">Награды</div>
+            {% if is_creator %}
+            <button
+              class="button-black create-group"
+              id="add_achievement_modal_button"
+              onclick="showHideAddAchievementModal(event)"
+            >
+              <img src="{% static 'icons/plus.svg' %}" alt="" />
+              Новая награда
+            </button>
+            {% endif %}
+          </div>
+          <div class="achievements-container">
+            {% if not achievements %}
+            <div class="not-found" style="grid-column: 1/-1">Наград пока нет</div>
+            {% endif %} {% for achievement in achievements %}
+            <div class="achievement">
+              <img
+                class="achievement__photo"
+                src="{% static 'icons/achievement.svg' %}"
+                width="80px"
+                height="80px"
+                alt=""
+              />
+              <div class="achievement__info">
+                <div class="achievement__main">
+                  <div class="achievement__title font-b1">{{achievement.title}}</div>
+                  <div class="achievement__description font-b3">{{achievement.description}}</div>
+                </div>
+                <div class="badge">{{achievement.weight}} баллов</div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div class="modal-wrapper" id="add_task_modal_wrapper">
+      <div class="modal" id="add_task_modal">
+        <div class="modal__title">
+          Создание задачи
+          <img id="add_task_close" class="modal__cross" src="{% static 'icons/cross.svg' %}" alt="" />
+        </div>
+        <div class="divider"></div>
+        <div class="modal__body">
+          <form method="post" action="{% url 'taskcreate' profile_group_id=profile_group.id %}">
+            {% csrf_token %}
+            <div class="text-field group-name-field">
+              <label for="title">Название задачи</label>
+              <input type="text" placeholder="Введите название" name="title" required />
+            </div>
+            <div class="text-field group-name-field">
+              <label for="description">Описание задачи</label>
+              <textarea type="text" placeholder="Введите описание" name="description" required></textarea>
+            </div>
+            <div class="text-field group-name-field">
+              <label for="description">Дедлайн</label>
+              <input type="date" name="deadline" />
+            </div>
+            <div class="text-field group-name-field">
+              <label for="user">Исполнитель</label>
+              <input type="text" placeholder="Выберите исполнителя" name="user_email" required />
+            </div>
+            <div class="divider"></div>
+            <div class="modal__buttons">
+              <button type="button" class="button-secondary" id="add_task_cancel">Отмена</button>
+              <button type="submit" class="button" id="add_task_ok">Создать</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-wrapper" id="add_achievement_modal_wrapper">
+      <div class="modal" id="add_achievement_modal">
+        <div class="modal__title">
+          Создание награды
+          <img id="add_achievement_close" class="modal__cross" src="{% static 'icons/cross.svg' %}" alt="" />
+        </div>
+        <div class="divider"></div>
+        <div class="modal__body">
+          <form method="post" action="{% url 'create_achievement' group_id=profile_group.id %}">
+            {% csrf_token %}
+            <div class="text-field group-name-field">
+              <label for="title">Название награды</label>
+              <input type="text" placeholder="Введите название" name="title" required />
+            </div>
+            <div class="text-field group-name-field">
+              <label for="description">Описание награды</label>
+              <textarea type="text" placeholder="Введите описание" name="description" required></textarea>
+            </div>
+            <div class="text-field group-name-field">
+              <label for="weight">Вес</label>
+              <input type="text" placeholder="Задайте вес" name="weight" required />
+            </div>
+            <div class="divider"></div>
+            <div class="modal__buttons">
+              <button type="button" class="button-secondary" id="add_achievement_cancel">Отмена</button>
+              <button type="submit" class="button" id="add_achievement_ok">Создать</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-wrapper" id="estimate_modal_wrapper">
+      <div class="modal" id="estimate_modal">
+        <div class="modal__title">
+          <span id="task_name_to_estimate"></span>
+          <img id="estimate_close" class="modal__cross" src="{% static 'icons/cross.svg' %}" alt="" />
+        </div>
+        <div class="divider"></div>
+        <div class="modal__body">
+          <form method="post" action="{% url 'bulk_assign_achievements' group_id=profile_group.id %}">
+            {% csrf_token %}
+            <input type="hidden" id="task_id" name="task_id" vlaue="" />
+            <div class="task-description">
+              <div class="task-description__title">Описание</div>
+              <div class="task-description__value" id="task_description"></div>
+            </div>
+            <div class="select">
+              <label for="">Награда</label>
+              <input
+                id="achievement_input"
+                name="achievement"
+                class="achievement-input"
+                type="text"
+                placeholder="Выберете награду"
+                onclick="showHideAchievementDropdown(event)"
+                readonly
+              />
+              <div class="dropdown achievement-dropdown" id="achievement_dropdown">
+                {% for achievement in achievements %}
+                <div class="dropdown__item" onclick="choiseAchievement(event)" id="achievement_{{achievement.id}}">
+                  {{achievement.title}}
+                </div>
+                {% endfor %}
+              </div>
+            </div>
+            <div class="divider"></div>
+            <div class="modal__buttons">
+              <button type="button" class="button-secondary" id="estimate_cancel">Отмена</button>
+              <button type="submit" class="button" id="estimate_ok">Сохранить</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-wrapper" id="edit_profile_modal_wrapper">
+      <div class="modal" id="edit_profile_modal">
+        <div class="modal__title">
+          Создание группы
+          <img id="edit_profile_close" class="modal__cross" src="{% static 'icons/cross.svg' %}" alt="" />
+        </div>
+        <div class="divider"></div>
+        <div class="modal__body">
+          <form method="post" action="{% url 'editprofile' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="pair">
+              <div class="pair__title">Фамилия и имя</div>
+              <div class="pair__value">{{profile.user.first_name}} {{profile.user.last_name}}</div>
+            </div>
+            <div class="pair">
+              <div class="pair__title">Электронная почта</div>
+              <div class="pair__value">{{profile.user.email}}</div>
+            </div>
+            <div class="pair">
+              <div class="pair__title">Логин</div>
+              <div class="pair__value">{{profile.user.username}}</div>
+            </div>
+            <div class="text-field group-name-field">
+              <label for="bio">Описание профиля</label>
+              <textarea
+                name="bio"
+                type="text"
+                placeholder="Здесь можно указать вашу роль в команде или другую полезную информацию"
+              >
+{% if profile.bio %}{{profile.bio}}{% endif %}</textarea
+              >
+            </div>
+
+            <div class="text-field group-name-field" id="profile_pic_dragable">
+              <label for="id_profile_pic2">Аватарка профиля</label>
+              <label for="id_profile_pic" class="picture-field"
+                >Выберете файлы
+                <span class="picture-field__description">или перетяните их сюда</span>
+                <input type="file" name="profile_pic" accept="image/*" id="id_profile_pic" />
+              </label>
+            </div>
+            {% if profile.profile_pic %}
+            <div class="text-field group-name-field" style="flex-direction: row; align-items: center">
+              <label for="profile_pic-clear_id" style="margin-bottom: 0">Удалить аватарку</label>
+              <input type="checkbox" name="profile_pic-clear" id="profile_pic-clear_id" style="margin-left: 5px" />
+            </div>
+            {% endif %}
+            <div class="divider"></div>
+            <div class="modal__buttons">
+              <button class="button-secondary" id="edit_profile_cancel">Отмена</button>
+              <button type="submit" class="button" id="edit_profile_ok">Сохранить</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-wrapper" id="delete_task_modal_wrapper">
+      <div class="modal" id="delete_task_modal">
+        <div class="modal__title">
+          Удалить задачу?
+          <img id="delete_task_close" class="modal__cross" src="{% static 'icons/cross.svg' %}" alt="" />
+        </div>
+        <form method="post" action="{% url 'delete_task' %}" style="margin-top: 24px">
+          {% csrf_token %}
+          <input type="hidden" name="group_id" value="{{profile_group.id}}" />
+          <input id="task_id_field" name="task_id" type="hidden" />
+          <div class="modal__buttons">
+            <button type="button" class="button-secondary" id="delete_task_cancel">Нет</button>
+            <button type="submit" class="button">Да</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal-wrapper" id="add_user_to_group_modal_wrapper">
+      <div class="modal" id="add_user_to_group_modal">
+        <div class="modal__title">
+          Добавление участника
+          <img id="add_user_to_group_close" class="modal__cross" src="{% static 'icons/cross.svg' %}" alt="" />
+        </div>
+        <div class="divider"></div>
+        <div class="modal__body">
+          <form method="post" action="{% url 'addusertogroup' group_id=profile_group.id %}">
+            {% csrf_token %}
+            <div class="text-field group-name-field">
+              <label for="user_email">Электронная почта участника</label>
+              <input type="text" placeholder="Введите лектронную почту участника" name="user_email" required />
+            </div>
+            <div class="divider"></div>
+            <div class="modal__buttons">
+              <button type="button" class="button-secondary" id="add_user_to_group_cancel">Отмена</button>
+              <button type="submit" class="button" id="add_user_to_group_ok">Создать</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function stopPropagat(e) {
+        e.stopPropagation();
+      }
+
+      function showHideProfileDropdown(e) {
+        e.stopPropagation();
+        var dropdown = document.getElementById("profile_dropdown");
+        if (dropdown.style.display == "" || dropdown.style.display == "none") {
+          dropdown.style.display = "flex";
+        } else {
+          dropdown.style.display = "none";
+        }
+        return false;
+      }
+
+      document.getElementById("header-profile").addEventListener("click", showHideProfileDropdown);
+
+      function showHideAddTaskModal(e) {
+        e.stopPropagation();
+        var modal = document.getElementById("add_task_modal_wrapper");
+        if (modal.style.display == "" || modal.style.display == "none") {
+          modal.style.display = "flex";
+        } else {
+          modal.style.display = "none";
+        }
+        return false;
+      }
+
+      function closeAddTaskModal() {
+        var modal = document.getElementById("add_task_modal_wrapper");
+        modal.style.display = "none";
+      }
+
+      document.getElementById("add_task_modal").addEventListener("click", stopPropagat);
+
+      document.getElementById("add_task_close").addEventListener("click", closeAddTaskModal);
+
+      document.getElementById("add_task_cancel").addEventListener("click", closeAddTaskModal);
+
+      function showHideAddAchievementModal(e) {
+        e.stopPropagation();
+        var modal = document.getElementById("add_achievement_modal_wrapper");
+        if (modal.style.display == "" || modal.style.display == "none") {
+          modal.style.display = "flex";
+        } else {
+          modal.style.display = "none";
+        }
+        return false;
+      }
+
+      function closeAddAchievementModal() {
+        var modal = document.getElementById("add_achievement_modal_wrapper");
+        modal.style.display = "none";
+      }
+
+      document.getElementById("add_achievement_modal").addEventListener("click", stopPropagat);
+
+      document.getElementById("add_achievement_close").addEventListener("click", closeAddAchievementModal);
+
+      document.getElementById("add_achievement_cancel").addEventListener("click", closeAddAchievementModal);
+
+      function showHideEstimateModal(e) {
+        e.stopPropagation();
+        var [takName, taskDescription, taskId] = e.target.id.split("|");
+        var taskNameElement = document.getElementById("task_name_to_estimate");
+        taskNameElement.textContent = takName;
+        var taskDescriptionElement = document.getElementById("task_description");
+        taskDescriptionElement.textContent = taskDescription;
+        var modal = document.getElementById("estimate_modal_wrapper");
+        var taskIdInput = document.getElementById("task_id");
+        console.log({ taskId });
+        taskIdInput.value = taskId;
+        if (modal.style.display == "" || modal.style.display == "none") {
+          modal.style.display = "flex";
+        } else {
+          modal.style.display = "none";
+        }
+        return false;
+      }
+
+      function closeEstimateModal() {
+        var modal = document.getElementById("estimate_modal_wrapper");
+        modal.style.display = "none";
+      }
+
+      //   document
+      //     .getElementById("estimate_modal_button")
+      //     .addEventListener("click", showHideEstimateModal);
+
+      function onClickEstimateModal(e) {
+        stopPropagat(e);
+        var dropdown = document.getElementById("achievement_dropdown");
+        dropdown.style.display = "none";
+      }
+      document.getElementById("estimate_modal").addEventListener("click", onClickEstimateModal);
+
+      document.getElementById("estimate_close").addEventListener("click", closeEstimateModal);
+
+      document.getElementById("estimate_cancel").addEventListener("click", closeEstimateModal);
+
+      function showHideAchievementDropdown(e) {
+        e.stopPropagation();
+        var dropdown = document.getElementById("achievement_dropdown");
+        if (dropdown.style.display == "" || dropdown.style.display == "none") {
+          dropdown.style.display = "flex";
+        } else {
+          dropdown.style.display = "none";
+        }
+        return false;
+      }
+
+      function choiseAchievement(event) {
+        var achievementId = event.target.id.slice(12);
+        var achievementTitle = event.target.textContent.replace(/^\s+|\s+$/g, "");
+        console.log({ achievementId, achievementTitle });
+        var achievementInput = document.getElementById("achievement_input");
+        console.log(achievementInput);
+        achievementInput.value = achievementTitle;
+      }
+
+      function showHideEditProfileModal(e) {
+        e.stopPropagation();
+        var modal = document.getElementById("edit_profile_modal_wrapper");
+        if (modal.style.display == "" || modal.style.display == "none") {
+          modal.style.display = "flex";
+        } else {
+          modal.style.display = "none";
+        }
+        return false;
+      }
+
+      function closeEditProfileModal() {
+        var modal = document.getElementById("edit_profile_modal_wrapper");
+        modal.style.display = "none";
+      }
+
+      document.getElementById("edit_profile_modal").addEventListener("click", stopPropagat);
+
+      document.getElementById("edit_profile_close").addEventListener("click", closeEditProfileModal);
+
+      document.getElementById("edit_profile_cancel").addEventListener("click", closeEditProfileModal);
+
+      function showHideDeleteTaskModal(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var taskIdInput = document.getElementById("task_id_field");
+        console.log("e.target.id", typeof e.target.id, e.target.id);
+        taskIdInput.value = e.target.id.slice(4);
+        var modal = document.getElementById("delete_task_modal_wrapper");
+        if (modal.style.display == "" || modal.style.display == "none") {
+          modal.style.display = "flex";
+        } else {
+          modal.style.display = "none";
+        }
+        return false;
+      }
+
+      function closeDeleteTaskModal() {
+        var modal = document.getElementById("delete_task_modal_wrapper");
+        modal.style.display = "none";
+      }
+
+      document.getElementById("delete_task_modal").addEventListener("click", stopPropagat);
+
+      document.getElementById("delete_task_close").addEventListener("click", closeDeleteTaskModal);
+
+      document.getElementById("delete_task_cancel").addEventListener("click", closeDeleteTaskModal);
+
+      function showHideAddUserToGroupModal(e) {
+        e.stopPropagation();
+        var modal = document.getElementById("add_user_to_group_modal_wrapper");
+        if (modal.style.display == "" || modal.style.display == "none") {
+          modal.style.display = "flex";
+        } else {
+          modal.style.display = "none";
+        }
+        return false;
+      }
+
+      function closeAddUserToGroupModal() {
+        var modal = document.getElementById("add_user_to_group_modal_wrapper");
+        modal.style.display = "none";
+      }
+
+      document.getElementById("add_user_to_group_modal").addEventListener("click", stopPropagat);
+
+      document.getElementById("add_user_to_group_close").addEventListener("click", closeAddUserToGroupModal);
+
+      document.getElementById("add_user_to_group_cancel").addEventListener("click", closeAddUserToGroupModal);
+
+      window.addEventListener("click", function () {
+        var dropdown = document.getElementById("profile_dropdown");
+        dropdown.style.display = "none";
+        closeAddTaskModal();
+        console.log("asdf");
+        closeAddAchievementModal();
+        closeEstimateModal();
+        closeEditProfileModal();
+        closeDeleteTaskModal();
+        closeAddUserToGroupModal();
+      });
+    </script>
+  </body>
+</html>

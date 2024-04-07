@@ -1,0 +1,18 @@
+{% block content %}
+<h2>Your Achievements</h2>
+<a href="javascript:history.go(-1)">back</a>
+
+<ul>
+    {% for achievement in achievements %}
+        <li>
+            <h3>{{ achievement.title }}</h3>
+            <p>{{ achievement.description }}</p>
+            <p>Weight: {{ achievement.weight }}</p>
+            <p>GROUP: {{ achievement.current_group }}</p>
+            <!-- Add more details as needed -->
+        </li>
+    {% empty %}
+        <li>No achievements yet.</li>
+    {% endfor %}
+</ul>
+{% endblock %}

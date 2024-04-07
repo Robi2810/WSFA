@@ -1,0 +1,541 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Профиль</title>
+    <link rel="stylesheet" href="{% static 'css/common.css' %}" />
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body,
+      .container {
+        width: 100%;
+        background-color: #ebedf0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .profile {
+        display: flex;
+        padding: 20px 24px;
+        border-radius: 16px;
+        background: var(--primary, #1d222a);
+        overflow: hidden;
+        background-image: url("{% static 'icons/background.svg' %}");
+      }
+
+      .profile__photo {
+        border-radius: 50%;
+        margin-right: 16px;
+        display: flex;
+        width: 66px;
+        height: 66px;
+      }
+
+      .profile__info {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .profile__name {
+        margin-bottom: 2px;
+        color: #ffffff;
+      }
+
+      .profile__rank {
+        margin-bottom: 12px;
+        color: #ffffff;
+      }
+
+      .achievements__title {
+        padding-right: 24px;
+        margin-bottom: 16px;
+        display: flex;
+        justify-content: space-between;
+      }
+
+      .achievements__awards {
+        color: var(--primary, #1d222a);
+      }
+
+      .achievements__awards-amount {
+        color: var(--secondary, #525760);
+        margin-left: 4px;
+      }
+
+      .achievements__awards-all {
+        color: var(--primary, #1d222a);
+        cursor: pointer;
+      }
+
+      .achievements__scroll {
+        display: flex;
+        gap: 16px;
+        overflow-y: auto;
+      }
+
+      .groups {
+        padding: 24px 8px;
+        margin-bottom: 10px;
+      }
+
+      .create-group {
+        margin-left: 16px;
+        margin-bottom: 16px;
+      }
+
+      .groups__header {
+        display: flex;
+        align-items: flex-end;
+        padding: 0 16px;
+        margin-bottom: 16px;
+      }
+
+      .groups__title {
+        color: var(--primary, #1d222a);
+        margin-right: 4px;
+      }
+
+      .groups__amount {
+        color: var(--secondary, #525760);
+      }
+
+      .groups-container {
+        display: grid;
+        gap: 16px;
+      }
+
+      .group {
+        border-radius: 16px;
+        padding: 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        cursor: default;
+      }
+
+      .group:hover {
+        background: #f5f8fd;
+      }
+
+      .group__title {
+        color: var(--secondary-dark, #202020);
+        margin-bottom: 12px;
+        display: flex;
+      }
+
+      .group__badge {
+        margin-left: 10px;
+      }
+
+      .group__badges {
+        display: flex;
+        gap: 8px;
+      }
+
+      .group__delete {
+        cursor: pointer;
+      }
+
+      .group-name-field {
+        margin-bottom: 16px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <div class="header__navigation">
+          <div class="header-profile" id="header-profile">
+            <img
+              class="header-profile__photo"
+              src="{% if profile.profile_pic %}{{profile.profile_pic.url}}{% else %}{% static 'icons/user.svg' %}{% endif %}"
+              alt=""
+            />
+            <img src="{% static 'icons/dropdown-arrow.svg' %}" width="16" height="16px" alt="" />
+            <div class="profile-dropdown" id="profile_dropdown">
+              <div class="profile-dropdown__item" onclick="showHideEditProfileModal(event)">Редактировать профиль</div>
+              <a class="profile-dropdown__item" href="{% url 'logout' %}">Выйти из аккаунта</a>
+            </div>
+          </div>
+        </div>
+      </header>
+      <main>
+        <div class="profile">
+          <img
+            class="profile__photo"
+            src="{% if profile.profile_pic %}{{profile.profile_pic.url}}{% else %}{% static 'icons/user.svg' %}{% endif %}"
+            alt=""
+          />
+          <div class="profile__info">
+            <div class="profile__name font-b1">{{profile.user.first_name}} {{profile.user.last_name}}</div>
+            <div class="profile__rank font-b3">{{profile.bio}}</div>
+            <div class="badge profile__score">{{profile.score}} баллов</div>
+          </div>
+        </div>
+        <div class="achievements card">
+          <div class="achievements__title">
+            <div class="achievements__awards font-b1">
+              <span>Награды</span><span class="achievements__awards-amount font-b3">{{achievements|length}}</span>
+            </div>
+            {% if achievements|length > 3 %}
+            <div class="achievements__all-awards" onclick="showHideAchievementsModal(event)" style="cursor: pointer">
+              Все
+            </div>
+            {% endif %}
+          </div>
+          <div class="achievements__scroll">
+            {% for achievement in achievements %}
+            <div class="achievement">
+              <img
+                class="achievement__photo"
+                src="{% static 'icons/achievement.svg' %}"
+                width="80px"
+                height="80px"
+                alt=""
+              />
+              <div class="achievement__info">
+                <div class="achievement__main">
+                  <div class="achievement__title font-b1">{{achievement.title}}</div>
+                  <div class="achievement__description font-b3">{{achievement.description}}</div>
+                </div>
+                <div class="badge">{{achievement.weight}}</div>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="groups card">
+          <div class="groups__header">
+            <span class="groups__title font-b1">Группы</span
+            ><span class="groups__amount font-b3">{{groups|length}}</span>
+          </div>
+          <button class="button-black create-group" id="add_group_modal_button">
+            <img src="{% static 'icons/plus.svg' %}" alt="" />
+            Создать группу
+          </button>
+          <div class="groups-container">
+            {% for group in groups %}
+            <a class="group" href="{% url 'group' profile_group_id=group.id %}" onclick="linkClick(event)">
+              <div class="group__main">
+                <div class="group__title font-b1">
+                  {{group.name}} {% if group.sudo %}
+                  <div class="badge group__badge">Я руководитель</div>
+                  {% endif %}
+                </div>
+                <div class="group__badges">
+                  <div class="badge-transparent">
+                    <img src="{% static 'icons/man.svg' %}" width="16px" height="16px" alt="" />
+                    {{group.people}} человек
+                  </div>
+                  <div class="badge-transparent">
+                    <img src="{% static 'icons/achievement-mini.svg' %}" width="12px" height="12px" alt="" />
+                    {{group.achievements}} наград
+                  </div>
+                  <div class="badge-transparent">
+                    <img src="{% static 'icons/task.svg' %}" width="12px" height="12px" alt="" />
+                    {{group.tasks}} задач
+                  </div>
+                </div>
+              </div>
+              {% if group.sudo %}
+              <img
+                id="group{{group.id}}"
+                onclick="showHideDeleteGroupModal(event)"
+                class="group__delete"
+                src="{% static 'icons/delete.svg' %}"
+                alt=""
+              />
+              {% endif %}
+            </a>
+            {% endfor %}
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div class="modal-wrapper" id="edit_profile_modal_wrapper">
+      <div class="modal" id="edit_profile_modal">
+        <div class="modal__title">
+          Создание группы
+          <img id="edit_profile_close" class="modal__cross" src="{% static 'icons/cross.svg' %}" alt="" />
+        </div>
+        <div class="divider"></div>
+        <div class="modal__body">
+          <form method="post" action="{% url 'editprofile' %}" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="pair">
+              <div class="pair__title">Фамилия и имя</div>
+              <div class="pair__value">{{profile.user.first_name}} {{profile.user.last_name}}</div>
+            </div>
+            <div class="pair">
+              <div class="pair__title">Электронная почта</div>
+              <div class="pair__value">{{profile.user.email}}</div>
+            </div>
+            <div class="pair">
+              <div class="pair__title">Логин</div>
+              <div class="pair__value">{{profile.user.username}}</div>
+            </div>
+            <div class="text-field group-name-field">
+              <label for="bio">Описание профиля</label>
+              <textarea
+                name="bio"
+                type="text"
+                placeholder="Здесь можно указать вашу роль в команде или другую полезную информацию"
+              >
+{% if profile.bio %}{{profile.bio}}{% endif %}</textarea
+              >
+            </div>
+
+            <div class="text-field group-name-field" id="profile_pic_dragable">
+              <label for="id_profile_pic2">Аватарка профиля</label>
+              <label for="id_profile_pic" class="picture-field"
+                >Выберете файлы
+                <span class="picture-field__description">или перетяните их сюда</span>
+                <input type="file" name="profile_pic" accept="image/*" id="id_profile_pic" />
+              </label>
+            </div>
+            {% if profile.profile_pic %}
+            <div class="text-field group-name-field" style="flex-direction: row; align-items: center">
+              <label for="profile_pic-clear_id" style="margin-bottom: 0">Удалить аватарку</label>
+              <input type="checkbox" name="profile_pic-clear" id="profile_pic-clear_id" style="margin-left: 5px" />
+            </div>
+            {% endif %}
+            <div class="divider"></div>
+            <div class="modal__buttons">
+              <button class="button-secondary" id="edit_profile_cancel">Отмена</button>
+              <button type="submit" class="button" id="edit_profile_ok">Сохранить</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-wrapper" id="add_group_modal_wrapper">
+      <div class="modal" id="add_group_modal">
+        <div class="modal__title">
+          Создание группы
+          <img id="add_group_close" class="modal__cross" src="{% static 'icons/cross.svg' %}" alt="" />
+        </div>
+        <div class="divider"></div>
+        <div class="modal__body">
+          <form method="post" action="{% url 'creategroup' %}">
+            {% csrf_token %}
+            <div class="text-field group-name-field">
+              <label for="name">Наименование группы</label>
+              <input type="text" placeholder="Введие наименование группы" name="name" required />
+            </div>
+            <div class="text-field group-name-field">
+              <label for="user_email">Электронная почта участника</label>
+              <input type="text" placeholder="Введите лектронную почту участника" name="user_email" required />
+            </div>
+            <div class="divider"></div>
+            <div class="modal__buttons">
+              <button class="button-secondary" id="add_group_cancel">Отмена</button>
+              <button type="submit" class="button" id="add_group_ok">Создать</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-wrapper" id="delete_group_modal_wrapper">
+      <div class="modal" id="delete_group_modal">
+        <div class="modal__title">
+          Удалить группу?
+          <img id="delete_group_close" class="modal__cross" src="{% static 'icons/cross.svg' %}" alt="" />
+        </div>
+        <form method="post" action="{% url 'delete_group' %}" style="margin-top: 24px">
+          {% csrf_token %}
+          <input id="group_id_field" name="group_id" type="hidden" group_id="" />
+          <div class="modal__buttons">
+            <button type="button" class="button-secondary" id="delete_group_cancel">Нет</button>
+            <button type="submit" class="button">Да</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div class="modal-wrapper" id="achievements_modal_wrapper">
+      <div class="modal" id="achievements_modal" style="max-height: 90vh; overflow-y: auto">
+        <div class="modal__title">
+          Мои награды
+          <img id="achievements_close" class="modal__cross" src="{% static 'icons/cross.svg' %}" alt="" />
+        </div>
+        <div class="divider"></div>
+        <div class="modal__body" style="gap: 16px">
+          {% for achievement in achievements %}
+          <div class="achievement" style="width: 100%">
+            <img
+              class="achievement__photo"
+              src="{% static 'icons/achievement.svg' %}"
+              width="80px"
+              height="80px"
+              alt=""
+            />
+            <div class="achievement__info">
+              <div class="achievement__main">
+                <div class="achievement__title font-b1">{{achievement.title}}</div>
+                <div class="achievement__description font-b3">{{achievement.description}}</div>
+              </div>
+              <div class="badge">{{achievement.weight}}</div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function stopPropagat(e) {
+        e.stopPropagation();
+      }
+
+      function showHideProfileDropdown(e) {
+        e.stopPropagation();
+        var dropdown = document.getElementById("profile_dropdown");
+        if (dropdown.style.display == "" || dropdown.style.display == "none") {
+          dropdown.style.display = "flex";
+        } else {
+          dropdown.style.display = "none";
+        }
+        return false;
+      }
+      document.getElementById("header-profile").addEventListener("click", showHideProfileDropdown);
+
+      function showHideEditProfileModal(e) {
+        e.stopPropagation();
+        var modal = document.getElementById("edit_profile_modal_wrapper");
+        if (modal.style.display == "" || modal.style.display == "none") {
+          modal.style.display = "flex";
+          var dropContainer = document.getElementById("profile_pic_dragable");
+
+          dropContainer.ondragover = dropContainer.ondragenter = function (evt) {
+            evt.preventDefault();
+          };
+
+          dropContainer.ondrop = function (evt) {
+            var fileInput = document.getElementById("id_profile_pic");
+            // pretty simple -- but not for IE :(
+            fileInput.files = evt.dataTransfer.files;
+            console.log(fileInput.files);
+            var fileElement = document.createElement("div");
+            fileElement.textContent = evt.dataTransfer.files[0].name;
+            dropContainer.appendChild(fileElement);
+
+            evt.preventDefault();
+          };
+        } else {
+          modal.style.display = "none";
+        }
+        return false;
+      }
+
+      function closeEditProfileModal() {
+        var modal = document.getElementById("edit_profile_modal_wrapper");
+        modal.style.display = "none";
+      }
+
+      document.getElementById("edit_profile_modal").addEventListener("click", stopPropagat);
+
+      document.getElementById("edit_profile_close").addEventListener("click", closeEditProfileModal);
+
+      document.getElementById("edit_profile_cancel").addEventListener("click", closeEditProfileModal);
+
+      function showHideAddGroupModal(e) {
+        e.stopPropagation();
+        var modal = document.getElementById("add_group_modal_wrapper");
+        if (modal.style.display == "" || modal.style.display == "none") {
+          modal.style.display = "flex";
+        } else {
+          modal.style.display = "none";
+        }
+        return false;
+      }
+
+      function closeAddGroupModal() {
+        var modal = document.getElementById("add_group_modal_wrapper");
+        modal.style.display = "none";
+      }
+
+      document.getElementById("add_group_modal_button").addEventListener("click", showHideAddGroupModal);
+
+      document.getElementById("add_group_modal").addEventListener("click", stopPropagat);
+
+      document.getElementById("add_group_close").addEventListener("click", closeAddGroupModal);
+
+      document.getElementById("add_group_cancel").addEventListener("click", closeAddGroupModal);
+
+      function linkClick(e) {
+        if (e.target.id.startsWith("group")) {
+          e.preventDefault();
+        }
+      }
+
+      function showHideDeleteGroupModal(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        var groupIdInput = document.getElementById("group_id_field");
+        console.log("e.target.id", typeof e.target.id, e.target.id);
+        groupIdInput.value = e.target.id.slice(5);
+        var modal = document.getElementById("delete_group_modal_wrapper");
+        if (modal.style.display == "" || modal.style.display == "none") {
+          modal.style.display = "flex";
+        } else {
+          modal.style.display = "none";
+        }
+        return false;
+      }
+
+      function closeDeleteGroupModal() {
+        var modal = document.getElementById("delete_group_modal_wrapper");
+        modal.style.display = "none";
+      }
+
+      document.getElementById("delete_group_modal").addEventListener("click", stopPropagat);
+
+      document.getElementById("delete_group_close").addEventListener("click", closeDeleteGroupModal);
+
+      document.getElementById("delete_group_cancel").addEventListener("click", closeDeleteGroupModal);
+
+      // function deleteGroup(e) {
+      //   e.preventDefault();
+      //   console.log(e.target.id);
+      // }
+
+      function showHideAchievementsModal(e) {
+        e.stopPropagation();
+        var modal = document.getElementById("achievements_modal_wrapper");
+        if (modal.style.display == "" || modal.style.display == "none") {
+          modal.style.display = "flex";
+        } else {
+          modal.style.display = "none";
+        }
+        return false;
+      }
+
+      function closeAchievementsModal() {
+        var modal = document.getElementById("achievements_modal_wrapper");
+        modal.style.display = "none";
+      }
+
+      document.getElementById("achievements_modal").addEventListener("click", stopPropagat);
+
+      document.getElementById("achievements_close").addEventListener("click", closeAchievementsModal);
+
+      window.addEventListener("click", function () {
+        var dropdown = document.getElementById("profile_dropdown");
+        dropdown.style.display = "none";
+        closeAddGroupModal();
+        closeEditProfileModal();
+        closeDeleteGroupModal();
+        closeAchievementsModal();
+      });
+    </script>
+  </body>
+</html>
